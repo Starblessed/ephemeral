@@ -1,0 +1,39 @@
+name: CI - Ephemeral Tests
+
+on:
+  push:
+    paths:
+      - '.protopy/**'
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .protopy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: 
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: '.protopy/pyproject.toml'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run tests
+        run: pytest
