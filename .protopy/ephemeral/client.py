@@ -23,7 +23,7 @@ class Client:
         if self.socket is None:
             raise ValueError("Client is not connected.")
 
-        message: str = json.dumps({"cmd": command, "payload": payload})
+        message: str = json.dumps({"cmd": command, "payload": payload}) + "\n"
 
         self.socket.sendall(message.encode("utf-8"))
         print(f"Message sent: {message}")  # TODO: replace print by logger.INFO
