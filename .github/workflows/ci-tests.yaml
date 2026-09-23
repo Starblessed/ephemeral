@@ -4,9 +4,14 @@ on:
   push:
     paths:
       - '.protopy/**'
+      - '.protopy/*'
     branches: [ master, develop ]
   pull_request:
+    paths:
+      - '.protopy/**'
+      - '.protopy/*'
     branches: [ master ]
+  workflow_dispatch:
 
 permissions:
   contents: read
