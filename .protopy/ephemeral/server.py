@@ -5,9 +5,11 @@ from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET
 
 from ephemeral.session_manager import SessionManager
 
+STANDARD_PORT: int = 8411
+
 
 class Server:
-    def __init__(self, ip: str, port: int):
+    def __init__(self, ip: str, port: int = STANDARD_PORT):
         self._started: datetime = datetime.now(tz=UTC)
 
         self.manager: SessionManager = SessionManager()
