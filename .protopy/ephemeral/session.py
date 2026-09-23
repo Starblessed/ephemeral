@@ -36,4 +36,4 @@ class Session:
             raise KeyError(f'Keys "{orphan_keys}" not present in session data!')
 
     def wipeout(self):
-        del self.data
+        self.data = None
