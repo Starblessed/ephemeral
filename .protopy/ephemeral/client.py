@@ -41,9 +41,13 @@ class Client:
 
     def set(self, data: dict):
         self.send(command="set", payload=data)
+        response: dict = self.receive()
+        return response
 
     def set_partial(self, data: dict):
         self.send(command="set_partial", payload=data)
+        response: dict = self.receive()
+        return response
 
     def get(self):
         self.send(command="get")
