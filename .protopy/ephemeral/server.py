@@ -3,9 +3,12 @@ import socket
 from datetime import UTC, datetime
 from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET
 
+from ephemeral.logger import get_logger
 from ephemeral.session_manager import SessionManager
 
 STANDARD_PORT: int = 8411
+
+logger = get_logger(name=__name__)
 
 
 class Server:
@@ -25,12 +28,10 @@ class Server:
             server.setblocking(False)
 
             loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-            print(
-                f"Listening on {self.ip}:{self.port}"
-            )  # TODO: replace print by logger.INFO
+            logger.info(f"Listening on {self.ip}:{self.port}")
 
             while True:
                 client_socket, address = await loop.sock_accept(server)
-                print(f"Connected: {address}")  # TODO: replace print by logger.INFO
+                logger.info(f"Connected: {address}")
 
                 self.manager.add_socket(client_socket)

@@ -1,7 +1,10 @@
 import json
 from socket import AF_INET, SOCK_STREAM, socket
 
+from ephemeral.logger import get_logger
 from ephemeral.server import STANDARD_PORT
+
+logger = get_logger(name=__name__)
 
 
 class Client:
@@ -13,11 +16,9 @@ class Client:
         try:
             self.socket = socket(AF_INET, SOCK_STREAM)
             self.socket.connect(self.server_addr)
-            print(
-                f"Connected to server at {self.server_addr}"
-            )  # TODO: replace print by logger.INFO
+            logger.info(f"Connected to server at {self.server_addr}")
         except ConnectionRefusedError as exc:
-            print(f"Error: Could not connect to server: {exc!r}")
+            logger.error(f"Error: Could not connect to server: {exc!r}")
 
     def send(self, command: str, payload: list | dict | None = None):
         if self.socket is None:
@@ -26,14 +27,14 @@ class Client:
         message: str = json.dumps({"cmd": command, "payload": payload}) + "\n"
 
         self.socket.sendall(message.encode("utf-8"))
-        print(f"Message sent: {message}")  # TODO: replace print by logger.INFO
+        logger.info(f"Message sent: {message}")
 
     def receive(self):
         if self.socket is None:
             raise ValueError("Client is not connected.")
 
         received_data: str = self.socket.recv(1024).decode("utf-8")
-        print(f"Received data: {received_data}")  # TODO: replace print by logger.INFO
+        logger.info(f"Received data: {received_data}")
 
         json_data: dict = json.loads(received_data)
 
@@ -59,6 +60,22 @@ class Client:
         data: dict = self.receive()
         return data
 
+    def disconnnect(self):
+        if self.socket is not None:
+            self.socket.close()
+
 
 if __name__ == "__main__":
     client: Client = Client(("127.0.0.1", STANDARD_PORT))
+
+    client.connect()
+
+    res = client.set(data={"foo": 123})
+
+    print(res)
+
+    res = client.get_partial(keys=["foo"])
+
+    print(res)
+
+    client.disconnnect()

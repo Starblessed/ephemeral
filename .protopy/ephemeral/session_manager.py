@@ -3,7 +3,10 @@ import json
 import socket
 from typing import Any
 
+from ephemeral.logger import get_logger
 from ephemeral.session import Session
+
+logger = get_logger(name=__name__)
 
 
 class SessionManager:
@@ -74,10 +77,12 @@ class SessionManager:
     ) -> dict[str, Any]:
 
         command: str | None = request.get("cmd", None)
-        payload: str | None = request.get("payload", None)
+        payload: dict | list | None = request.get("payload", None)
 
-        if command == None or payload == None:
-            raise ValueError("Neither cmd nor payload can be None!")
+        if command is None:
+            raise ValueError("Command cannot be None!")
+
+        logger.info(f'Received command "{command}" with payload "{payload}"')
 
         match command:
             case "get":
@@ -104,7 +109,8 @@ class SessionManager:
                 if not isinstance(payload, dict):
                     return {"error": "set requires an object"}
 
-                return {"result": session.set_data(data=payload)}
+                session.set_data(data=payload)
+                return {"result": "ok"}
 
             case "set_partial":
                 # payload must be a dict
@@ -112,7 +118,8 @@ class SessionManager:
                     return {"error": "set_partial requires an object"}
 
                 try:
-                    return {"result": session.set_partial_data(data=payload)}
+                    session.set_partial_data(data=payload)
+                    return {"result": "ok"}
 
                 except ValueError as exc:
                     return {"error": str(exc)}
