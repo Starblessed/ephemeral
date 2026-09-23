@@ -18,20 +18,21 @@ class Session:
         self.data = data
 
     def set_partial_data(self, data: dict) -> None:
-        self.data.update(data)
+        self.__check_has_data()
+        self.data.update(data)  # type: ignore
 
     def get_data(self) -> dict:
         self.__check_has_data()
-        return self.data
+        return self.data  # type: ignore
 
     def get_partial_data(self, keys: Any | list[Any]) -> dict:
         self.__check_has_data()
         _keys = keys if isinstance(keys, list) else [keys]
         try:
-            return {k: self.data[k] for k in _keys}
+            return {k: self.data[k] for k in _keys}  # type: ignore
         except KeyError:
             # Identifies orphan keys in the request
-            orphan_keys: set[Any] = set(_keys) - set(self.data.keys())
+            orphan_keys: set[Any] = set(_keys) - set(self.data.keys())  # type: ignore
             raise KeyError(f'Keys "{orphan_keys}" not present in session data!')
 
     def wipeout(self):
