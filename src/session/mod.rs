@@ -16,38 +16,30 @@ impl Session {
         Session { id: String::from("TODO"), data: None }
     }
 
-    fn _get_data(&mut self) -> Result<&mut Map<String, Value>, SessionError> {
+    fn get_data_ref(&self) -> Result<&Map<String, Value>, SessionError> {
         self.data
-            .as_mut()
+            .as_ref()
             .ok_or(SessionError::NoDataPresent)
     }
 
-    pub fn get_data(&mut self) -> Result<Map<String, Value>, SessionError> {
-        match self._get_data() {
-            Err(err) => {
-                Err(err)
-            },
-            Ok(data) => {
-                Ok(data.clone())
-            }
-        }
+    pub fn get_data(&self) -> Result<Map<String, Value>, SessionError> {
+        Ok(self.get_data_ref()?.clone())
     }
 
     pub fn get_partial_data(&mut self, keys: &[String]) -> Result<Map<String, Value>, SessionError> {
-        let data: &mut Map<String, Value> = self._get_data()?;
+        let data: &Map<String, Value> = self.get_data_ref()?;
 
-        let mut result: Map<String, Value> = Map::new();
-
-        let orphan_keys: Vec<String> = keys
+        let missing_keys: Vec<String> = keys
             .iter()
             .filter(|k| data.contains_key(*k))
             .cloned()
             .collect();
 
-        if !orphan_keys.is_empty() {
-            return Err(SessionError::KeyNotFound(orphan_keys))
+        if !missing_keys.is_empty() {
+            return Err(SessionError::KeyNotFound(missing_keys))
         }
 
+        let mut result: Map<String, Value> = Map::new();
         for key in keys {
             if let Some(value) = data.get(key) {
                 result.insert(key.clone(), value.clone());
@@ -57,22 +49,15 @@ impl Session {
         Ok(result)
     }
 
-    pub fn set_data<T>(&mut self, data: T)
-    where
-        T: Into<Option<Map<String, Value>>>,
-    {
-        self.data = data.into();
+    pub fn set_data(&mut self, data: Option<Map<String, Value>>) {
+        self.data = data;
     }
 
-    pub fn set_partial_data<T>(&mut self, data: T) -> Result<(), SessionError>
-    where
-        T: Into <Option<Map<String, Value>>>,
-    {
-        let incoming = data.into();
+    pub fn set_partial_data(&mut self, data: Option<Map<String, Value>>) -> Result<(), SessionError> {
 
-        let target = self._get_data()?;
+        let target = self.data.as_mut().ok_or(SessionError::NoDataPresent)?;
         
-        if let Some(new_data) = incoming {
+        if let Some(new_data) = data {
             target.extend(new_data);
         }
 
@@ -83,4 +68,25 @@ impl Session {
         self.data = None;
     }
   
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::{ json, Map, Value };
+
+    #[test]
+    fn test_get_set_data_roundtrip() {
+        let mut session = Session::new();
+
+        let data: Map<String, Value> = Map::from_iter([
+            ("abc".to_string(), json!(123)),
+            ("xyz".to_string(), json!(456)),
+        ]);
+
+        session.set_data(Some(data.clone()));
+
+        assert_eq!(session.get_data().unwrap(), data);
+
+    }
 }
