@@ -1,5 +1,4 @@
 from secrets import token_hex
-from socket import socket
 from typing import Any
 
 
@@ -7,7 +6,6 @@ class Session:
     # TODO: use gc and bytearray for better data wipe security.
     def __init__(self, id_length: int):
         self.id: str = token_hex(id_length)
-        self.socket: socket | None = None
         self.data: dict | None = None
 
     def __check_has_data(self):

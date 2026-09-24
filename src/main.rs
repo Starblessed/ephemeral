@@ -1,5 +1,7 @@
 use clap::Parser;
 
+mod session;
+
 #[derive(Parser)]
 struct Args {
     /// Host IP Address
