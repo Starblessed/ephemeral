@@ -14,7 +14,7 @@ def main():
 
     args = parser.parse_args()
 
-    server: Server = Server(ip=args.ip, port=args.port)
+    server: Server = Server(ip=args.ip, port=args.port)  # type: ignore
 
     asyncio.run(server.run())
 
