@@ -1,6 +1,9 @@
 use clap::Parser;
 
-mod session;
+mod server;
+pub mod session;
+pub mod session_manager;
+pub mod utils;
 
 #[derive(Parser)]
 struct Args {
