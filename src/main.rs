@@ -15,7 +15,6 @@ struct Args {
 }
 
 fn main() {
-
     let args = Args::parse();
 
     let port_string: String = args.port.to_string();
@@ -23,5 +22,4 @@ fn main() {
     println!("Provided address: {0}:{1}", args.ip, port_string);
 
     // TODO: add server run logic
-
 }

@@ -1,4 +1,4 @@
-use serde_json::{ Map, Value };
+use serde_json::{Map, Value};
 
 #[derive(Debug)]
 pub enum SessionError {
@@ -13,20 +13,24 @@ struct Session {
 
 impl Session {
     pub fn new() -> Session {
-        Session { id: String::from("TODO"), data: None }
+        Session {
+            id: String::from("TODO"),
+            data: None,
+        }
     }
 
     fn get_data_ref(&self) -> Result<&Map<String, Value>, SessionError> {
-        self.data
-            .as_ref()
-            .ok_or(SessionError::NoDataPresent)
+        self.data.as_ref().ok_or(SessionError::NoDataPresent)
     }
 
     pub fn get_data(&self) -> Result<Map<String, Value>, SessionError> {
         Ok(self.get_data_ref()?.clone())
     }
 
-    pub fn get_partial_data(&mut self, keys: &Vec<String>) -> Result<Map<String, Value>, SessionError> {
+    pub fn get_partial_data(
+        &mut self,
+        keys: &Vec<String>,
+    ) -> Result<Map<String, Value>, SessionError> {
         let data: &Map<String, Value> = self.get_data_ref()?;
 
         let missing_keys: Vec<String> = keys
@@ -36,7 +40,7 @@ impl Session {
             .collect();
 
         if !missing_keys.is_empty() {
-            return Err(SessionError::KeyNotFound(missing_keys))
+            return Err(SessionError::KeyNotFound(missing_keys));
         }
 
         let mut result: Map<String, Value> = Map::new();
@@ -53,10 +57,12 @@ impl Session {
         self.data = data;
     }
 
-    pub fn set_partial_data(&mut self, data: Option<Map<String, Value>>) -> Result<(), SessionError> {
-
+    pub fn set_partial_data(
+        &mut self,
+        data: Option<Map<String, Value>>,
+    ) -> Result<(), SessionError> {
         let target = self.data.as_mut().ok_or(SessionError::NoDataPresent)?;
-        
+
         if let Some(new_data) = data {
             target.extend(new_data);
         }
@@ -67,13 +73,12 @@ impl Session {
     pub fn wipeout(&mut self) {
         self.data = None;
     }
-  
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{ json, Map, Value };
+    use serde_json::{Map, Value, json};
 
     #[test]
     fn test_set_get_data_roundtrip() {
@@ -87,7 +92,6 @@ mod tests {
         session.set_data(Some(data.clone()));
 
         assert_eq!(session.get_data().unwrap(), data);
-
     }
 
     #[test]
@@ -115,7 +119,6 @@ mod tests {
         session.set_partial_data(Some(new_data)).unwrap();
 
         assert_eq!(session.get_data().unwrap(), expected_data)
-
     }
 
     #[test]
@@ -138,7 +141,8 @@ mod tests {
         let session: Session = Session::new();
 
         assert!(matches!(
-            session.get_data(), Err(SessionError::NoDataPresent)
+            session.get_data(),
+            Err(SessionError::NoDataPresent)
         ));
     }
 
@@ -152,9 +156,7 @@ mod tests {
             ("foo".to_string(), json!(700)),
         ]);
 
-        let keys: Vec<String> = Vec::from_iter([
-            String::from("xyz"), String::from("foo")
-            ]);
+        let keys: Vec<String> = Vec::from_iter([String::from("xyz"), String::from("foo")]);
 
         session.set_data(Some(data));
 
@@ -164,19 +166,17 @@ mod tests {
         ]);
 
         assert_eq!(session.get_partial_data(&keys).unwrap(), expected_data);
-
     }
 
     #[test]
     fn test_get_partial_data_not_initialized() {
         let mut session: Session = Session::new();
 
-        let keys: Vec<String> = Vec::from_iter([
-            String::from("abc"), String::from("xyz")
-        ]);
+        let keys: Vec<String> = Vec::from_iter([String::from("abc"), String::from("xyz")]);
 
         assert!(matches!(
-            session.get_partial_data(&keys), Err(SessionError::NoDataPresent)
+            session.get_partial_data(&keys),
+            Err(SessionError::NoDataPresent)
         ));
     }
 
@@ -198,7 +198,8 @@ mod tests {
         session.set_data(Some(data));
 
         assert!(matches!(
-            session.get_partial_data(&keys), Err(SessionError::KeyNotFound(_))
+            session.get_partial_data(&keys),
+            Err(SessionError::KeyNotFound(_))
         ));
     }
 
@@ -216,7 +217,8 @@ mod tests {
         session.wipeout();
 
         assert!(matches!(
-            session.get_data(), Err(SessionError::NoDataPresent)
+            session.get_data(),
+            Err(SessionError::NoDataPresent)
         ));
     }
 }
