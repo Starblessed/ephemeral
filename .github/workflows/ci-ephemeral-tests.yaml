@@ -1,0 +1,48 @@
+name: CI - Ephemeral Tests
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  run-tests:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      # 1. Repo code checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # 2. Installs Rust Toolchain with auto cache for Cargo
+      - name: Setup Cargo and Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with: 
+          toolchain: stable
+          components: rustfmt, clippy
+
+      # 3. Checks the code formatting and fails if not formatted
+      - name: Check formatting
+        run: cargo fmt --check
+
+      # 4. Runs linter
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      # 5. Runs tests
+      - name: Run tests
+        run: cargo test --verbose

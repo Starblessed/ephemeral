@@ -1,6 +1,9 @@
 use clap::Parser;
 
-mod session;
+mod server;
+pub mod session;
+pub mod session_manager;
+pub mod utils;
 
 #[derive(Parser)]
 struct Args {
@@ -8,17 +11,33 @@ struct Args {
     ip: String,
 
     /// Server Application Port
-    port: i32,
+    port: Option<u16>,
 }
-
-fn main() {
-
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
 
-    let port_string: String = args.port.to_string();
+    let address: server::Address = {
+        let port = match args.port {
+            Some(port) => {
+                if port != server::STANDARD_PORT {
+                    println!("Custom port provided: {}", port);
+                }
+                port
+            }
+            None => {
+                println!(
+                    "No port provided, proceeding with standard: {}",
+                    server::STANDARD_PORT
+                );
+                server::STANDARD_PORT
+            }
+        };
 
-    println!("Provided address: {0}:{1}", args.ip, port_string);
+        server::Address::from_tuple((args.ip, port))
+    };
 
-    // TODO: add server run logic
+    let server = server::Server::from_address(address);
 
+    _ = server.run().await; // . . .
 }
