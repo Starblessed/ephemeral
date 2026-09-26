@@ -45,6 +45,12 @@ pub struct SessionManager {
     // Tasks are not owned by the session manager, but by the sessions themselves
 }
 
+impl Default for SessionManager {
+    fn default() -> SessionManager {
+        Self::new()
+    }
+}
+
 impl SessionManager {
     pub fn new() -> SessionManager {
         SessionManager {
@@ -133,7 +139,7 @@ impl SessionManager {
             return json!({"error": "Command cannot be None!"}).to_string();
         };
 
-        println!("Session {} received command {}", &session.id, &command);
+        println!("Session {} received command {}", session.id, command);
 
         let payload: &Payload = &request.payload;
 

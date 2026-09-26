@@ -13,6 +13,12 @@ pub struct Session {
     pub data: Option<Map<String, Value>>,
 }
 
+impl Default for Session {
+    fn default() -> Session {
+        Self::new()
+    }
+}
+
 impl Session {
     pub fn new() -> Session {
         Session {

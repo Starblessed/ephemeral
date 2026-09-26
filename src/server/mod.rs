@@ -36,7 +36,7 @@ impl Server {
         Server {
             started: Instant::now(),
             manager: SessionManager::new(),
-            address: address,
+            address,
         }
     }
 
