@@ -96,7 +96,7 @@ class SessionManager:
             case "get_partial":
                 # payload must be a list of keys
                 if not isinstance(payload, list):
-                    return {"error": "get requires a list of keys"}
+                    return {"error": "get_partial requires a list of keys"}
 
                 try:
                     return {"result": session.get_partial_data(keys=payload)}

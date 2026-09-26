@@ -60,6 +60,11 @@ class Client:
         data: dict = self.receive()
         return data
 
+    def wipeout(self):
+        self.send(command="wipeout")
+        data: dict = self.receive()
+        return data
+
     def disconnnect(self):
         if self.socket is not None:
             self.socket.close()
@@ -70,11 +75,15 @@ if __name__ == "__main__":
 
     client.connect()
 
-    res = client.set(data={"foo": 123})
+    res = client.get()
 
     print(res)
 
-    res = client.get_partial(keys=["foo"])
+    res = client.wipeout()
+
+    print(res)
+
+    res = client.get()
 
     print(res)
 

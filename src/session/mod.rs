@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use serde_json::{Map, Value};
+use tokio::net::TcpStream;
 
 #[derive(Debug)]
 pub enum SessionError {
@@ -8,8 +9,9 @@ pub enum SessionError {
     KeyNotFound(Vec<String>),
 }
 
-struct Session {
+pub struct Session {
     pub id: String,
+    pub stream: Option<TcpStream>,
     pub data: Option<Map<String, Value>>,
 }
 
@@ -17,6 +19,7 @@ impl Session {
     pub fn new() -> Session {
         Session {
             id: String::from("TODO"),
+            stream: None,
             data: None,
         }
     }
@@ -30,7 +33,7 @@ impl Session {
     }
 
     pub fn get_partial_data(
-        &mut self,
+        &self,
         keys: &Vec<String>,
     ) -> Result<Map<String, Value>, SessionError> {
         let data: &Map<String, Value> = self.get_data_ref()?;
@@ -172,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_get_partial_data_not_initialized() {
-        let mut session: Session = Session::new();
+        let session: Session = Session::new();
 
         let keys: Vec<String> = Vec::from_iter([String::from("abc"), String::from("xyz")]);
 
