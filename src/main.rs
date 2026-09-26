@@ -5,7 +5,6 @@ pub mod session;
 pub mod session_manager;
 pub mod utils;
 
-
 #[derive(Parser)]
 struct Args {
     /// Host IP Address
@@ -18,7 +17,6 @@ struct Args {
 async fn main() {
     let args = Args::parse();
 
-    
     let address: server::Address = {
         let port = match args.port {
             Some(port) => {
@@ -26,9 +24,12 @@ async fn main() {
                     println!("Custom port provided: {}", port);
                 }
                 port
-            },
+            }
             None => {
-                println!("No port provided, proceeding with standard: {}", server::STANDARD_PORT);
+                println!(
+                    "No port provided, proceeding with standard: {}",
+                    server::STANDARD_PORT
+                );
                 server::STANDARD_PORT
             }
         };
@@ -39,5 +40,4 @@ async fn main() {
     let server = server::Server::from_address(address);
 
     _ = server.run().await; // . . .
-
 }

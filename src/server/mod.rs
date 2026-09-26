@@ -1,8 +1,8 @@
 use crate::session_manager::SessionManager;
 use datetime::Instant;
 
-use tokio::net::TcpListener;
 use tokio::io::Result;
+use tokio::net::TcpListener;
 
 use std::fmt;
 
@@ -42,6 +42,7 @@ impl Server {
 
     pub async fn run(&self) -> Result<()> {
         let listener = TcpListener::bind(&self.address.to_string()).await?;
+        println!("Server started at: {:?}", self.started);
         println!("Ephemeral Server listening on {}", self.address);
 
         // TODO: Accept connections and redirect them to the session manager
@@ -52,7 +53,5 @@ impl Server {
 
             self.manager.add_socket(socket).await;
         }
-    
     }
 }
-

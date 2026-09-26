@@ -1,7 +1,7 @@
-use crate::session::{ Session, SessionError };
-use serde_json::{ Map, Value, json};
-use serde::Deserialize;
+use crate::session::{Session, SessionError};
 use core::str;
+use serde::Deserialize;
+use serde_json::{Map, Value, json};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -31,12 +31,11 @@ struct Request {
     payload: Payload,
 }
 
-
 impl fmt::Display for Request {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.cmd.as_ref() {
             Some(cmd) => write!(f, "{}", cmd),
-            None => write!(f, "")
+            None => write!(f, ""),
         }
     }
 }
@@ -101,12 +100,18 @@ impl SessionManager {
 
                                 match guard.get_mut(&session_id) {
                                     Some(session) => Self::handle_request(session, request).await,
-                                    None => break
+                                    None => break,
                                 }
                             };
-                    
-                            if writer.write_all(format!("{response}\n").as_bytes()).await.is_err() { break }
-                        },
+
+                            if writer
+                                .write_all(format!("{response}\n").as_bytes())
+                                .await
+                                .is_err()
+                            {
+                                break;
+                            }
+                        }
                         Err(e) => {
                             eprintln!("parse error: {e}; input: {line:?}");
                             break;
@@ -114,19 +119,16 @@ impl SessionManager {
                     };
                 }
                 Err(_) => break,
-                }
             }
-            sessions.lock().await.remove(&session_id);
         }
-        
+        sessions.lock().await.remove(&session_id);
+    }
 
     async fn parse_request(raw: String) -> Result<Request, serde_json::Error> {
         serde_json::from_str::<Request>(&raw)
     }
 
-
     async fn handle_request(session: &mut Session, request: Request) -> String {
-        
         let Some(command) = request.cmd.as_deref() else {
             return json!({"error": "Command cannot be None!"}).to_string();
         };
@@ -136,23 +138,17 @@ impl SessionManager {
         let payload: &Payload = &request.payload;
 
         let response: Map<String, Value> = match command.trim() {
-            
             // CMD = get
             // May return an error if:
             //   - session data wasn't previously initialized
             "get" => {
-
                 let result: Result<Map<String, Value>, SessionError> = session.get_data();
 
                 match result {
                     Ok(data) => data,
-                    Err(e) => {
-                        Map::from_iter([
-                            ("error".to_string(), json!(format!("{:?}", e)))
-                        ])
-                    }
+                    Err(e) => Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))]),
                 }
-            },
+            }
 
             // CMD = get_partial -> Requires payload: Vec<String>
             // May return an error if:
@@ -165,17 +161,16 @@ impl SessionManager {
                     match result {
                         Ok(data) => data,
                         Err(e) => {
-                            Map::from_iter([
-                                ("error".to_string(), json!(format!("{:?}", e)))
-                            ])
+                            Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))])
                         }
                     }
                 } else {
-                    Map::from_iter([
-                        ("error".to_string(), json!("get_partial requires a list of keys"))
-                    ])
+                    Map::from_iter([(
+                        "error".to_string(),
+                        json!("get_partial requires a list of keys"),
+                    )])
                 }
-            },
+            }
 
             // CMD = set -> Requires data: Map<String, Value>
             // May return an error if:
@@ -183,17 +178,12 @@ impl SessionManager {
             "set" => {
                 if let Payload::Dict(data) = payload {
                     session.set_data(Some(data.clone()));
-                    
-                    Map::from_iter([
-                        ("result".to_string(), json!("ok"))
-                    ])
-                    
+
+                    Map::from_iter([("result".to_string(), json!("ok"))])
                 } else {
-                    Map::from_iter([
-                        ("error".to_string(), json!("set requires an object"))
-                    ])
+                    Map::from_iter([("error".to_string(), json!("set requires an object"))])
                 }
-            },
+            }
 
             // CMD = set_partial -> Requires data: Map<String, Value>
             // May return an error if:
@@ -203,35 +193,24 @@ impl SessionManager {
                     let result = session.set_partial_data(Some(data.clone()));
 
                     match result {
-                        Ok(_) => {
-                            Map::from_iter([
-                            ("result".to_string(), json!("ok"))
-                            ])
-                        },
+                        Ok(_) => Map::from_iter([("result".to_string(), json!("ok"))]),
                         Err(e) => {
-                            Map::from_iter([
-                                ("error".to_string(), json!(format!("{:?}", e)))
-                            ])
+                            Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))])
                         }
                     }
                 } else {
-                    Map::from_iter([
-                        ("error".to_string(), json!("set_partial requires an object"))
-                    ])
+                    Map::from_iter([("error".to_string(), json!("set_partial requires an object"))])
                 }
-            },
+            }
             "wipeout" => {
                 session.wipeout();
 
-                Map::from_iter([
-                    ("result".to_string(), json!("ok"))
-                    ])
+                Map::from_iter([("result".to_string(), json!("ok"))])
             }
-            cmd => {
-                Map::from_iter([
-                        ("error".to_string(), json!(format!("invalid command: {}", cmd)))
-                    ])
-            }
+            cmd => Map::from_iter([(
+                "error".to_string(),
+                json!(format!("invalid command: {}", cmd)),
+            )]),
         };
 
         serde_json::to_string(&response).unwrap()

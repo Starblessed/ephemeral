@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use serde_json::{Map, Value};
 use tokio::net::TcpStream;
 
@@ -32,10 +30,7 @@ impl Session {
         Ok(self.get_data_ref()?.clone())
     }
 
-    pub fn get_partial_data(
-        &self,
-        keys: &Vec<String>,
-    ) -> Result<Map<String, Value>, SessionError> {
+    pub fn get_partial_data(&self, keys: &Vec<String>) -> Result<Map<String, Value>, SessionError> {
         let data: &Map<String, Value> = self.get_data_ref()?;
 
         let missing_keys: Vec<String> = keys
