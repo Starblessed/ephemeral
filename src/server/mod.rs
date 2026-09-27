@@ -1,5 +1,6 @@
 use crate::session_manager::SessionManager;
 use datetime::Instant;
+use log::info;
 
 use tokio::io::Result;
 use tokio::net::TcpListener;
@@ -42,14 +43,14 @@ impl Server {
 
     pub async fn run(&self) -> Result<()> {
         let listener = TcpListener::bind(&self.address.to_string()).await?;
-        println!("Server started at: {:?}", self.started);
-        println!("Ephemeral Server listening on {}", self.address);
+        info!("Server started at: {:?}", self.started);
+        info!("Ephemeral Server listening on {}", self.address);
 
         // TODO: Accept connections and redirect them to the session manager
 
         loop {
             let (socket, client_addr) = listener.accept().await?;
-            println!("New connection established with: {}", client_addr);
+            info!("New connection established with: {}", client_addr);
 
             self.manager.add_socket(socket).await;
         }

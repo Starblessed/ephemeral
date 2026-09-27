@@ -1,0 +1,14 @@
+services:
+  ephemeral:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - IP=${IP}
+        - PORT=${PORT}
+    environment:
+      - IP=${IP}
+      - PORT=${PORT}
+      - RUST_LOG=${RUST_LOG:-info}
+    ports:
+      - "${PORT}:${PORT}"
