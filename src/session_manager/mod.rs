@@ -1,5 +1,6 @@
 use crate::session::{Session, SessionError};
 use core::str;
+use log::{error, info, warn};
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
 use std::collections::HashMap;
@@ -119,7 +120,7 @@ impl SessionManager {
                             }
                         }
                         Err(e) => {
-                            eprintln!("parse error: {e}; input: {line:?}");
+                            error!("parse error: {e}; input: {line:?}");
                             break;
                         }
                     };
@@ -127,6 +128,7 @@ impl SessionManager {
                 Err(_) => break,
             }
         }
+        info!("Session {} terminated.", session_id);
         sessions.lock().await.remove(&session_id);
     }
 
@@ -139,7 +141,7 @@ impl SessionManager {
             return json!({"error": "Command cannot be None!"}).to_string();
         };
 
-        println!("Session {} received command {}", session.id, command);
+        info!("Session {} received command {}", session.id, command);
 
         let payload: &Payload = &request.payload;
 
@@ -152,7 +154,10 @@ impl SessionManager {
 
                 match result {
                     Ok(data) => data,
-                    Err(e) => Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))]),
+                    Err(e) => {
+                        warn!("get_data failed with error: {:?}", e);
+                        Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))])
+                    }
                 }
             }
 
@@ -167,6 +172,7 @@ impl SessionManager {
                     match result {
                         Ok(data) => data,
                         Err(e) => {
+                            warn!("get_partial_data failed with error: {:?}", e);
                             Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))])
                         }
                     }
@@ -194,6 +200,7 @@ impl SessionManager {
             // CMD = set_partial -> Requires data: Map<String, Value>
             // May return an error if:
             //   - payload cannot be parsed to type Map<String, Value>
+            //   - session data wasn't previously initialized
             "set_partial" => {
                 if let Payload::Dict(data) = payload {
                     let result = session.set_partial_data(Some(data.clone()));
@@ -201,6 +208,7 @@ impl SessionManager {
                     match result {
                         Ok(_) => Map::from_iter([("result".to_string(), json!("ok"))]),
                         Err(e) => {
+                            warn!("set_partial_data failed with error: {:?}", e);
                             Map::from_iter([("error".to_string(), json!(format!("{:?}", e)))])
                         }
                     }
@@ -208,6 +216,7 @@ impl SessionManager {
                     Map::from_iter([("error".to_string(), json!("set_partial requires an object"))])
                 }
             }
+            // CMD = wipeout
             "wipeout" => {
                 session.wipeout();
 

@@ -1,4 +1,5 @@
 use clap::Parser;
+use log::info;
 
 mod server;
 pub mod session;
@@ -8,25 +9,28 @@ pub mod utils;
 #[derive(Parser)]
 struct Args {
     /// Host IP Address
+    #[arg(long, env = "IP")]
     ip: String,
 
     /// Server Application Port
+    #[arg(long, env = "PORT")]
     port: Option<u16>,
 }
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     let args = Args::parse();
 
     let address: server::Address = {
         let port = match args.port {
             Some(port) => {
                 if port != server::STANDARD_PORT {
-                    println!("Custom port provided: {}", port);
+                    info!("Custom port provided: {}", port);
                 }
                 port
             }
             None => {
-                println!(
+                info!(
                     "No port provided, proceeding with standard: {}",
                     server::STANDARD_PORT
                 );
