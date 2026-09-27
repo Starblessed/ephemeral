@@ -128,7 +128,7 @@ impl SessionManager {
                 Err(_) => break,
             }
         }
-        info!("Session {} terminated.", &session_id);
+        info!("Session {} terminated.", session_id);
         sessions.lock().await.remove(&session_id);
     }
 
